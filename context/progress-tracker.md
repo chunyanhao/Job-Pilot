@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 1 — Foundation
-**Last completed:** 02 Auth
-**Next:** 03 PostHog Initialization
+**Last completed:** 03 PostHog Initialization
+**Next:** 04 Database Schema
 
 ---
 
@@ -18,7 +18,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 01 Homepage
 - [x] 02 Auth
-- [ ] 03 PostHog Initialization
+- [x] 03 PostHog Initialization
 - [ ] 04 Database Schema
 
 ### Phase 2 — Profile Page
@@ -56,6 +56,10 @@ Update this file after every completed feature. Any AI agent reading this should
 - 2026-06-16 — Auth implemented with the current InsForge MCP guidance using `@insforge/sdk` plus `@insforge/sdk/ssr`; older local docs still mention `@insforge/ssr`.
 - 2026-06-16 — Next.js 16 route protection uses `proxy.ts` with InsForge `updateSession()` instead of the older `middleware.ts` convention.
 - 2026-06-16 — OAuth callback exchanges `insforge_code` with the browser-held PKCE verifier, then persists app-domain SSR cookies through `/api/auth/session`.
+- 2026-06-16 — Authenticated app navbar includes a client-only Logout button that clears `/api/auth/session`, resets PostHog, and returns the user to `/login`.
+- 2026-06-16 — PostHog initialized with a small client provider inside the server root layout. Browser events use `posthog-js`; server-side future events use `posthog-node` with `flushAt: 1`, `flushInterval: 0`, and `shutdown()` in the helper.
+- 2026-06-16 — Current app analytics track manual `$pageview` events plus safe OAuth lifecycle events: `auth_sign_in_started`, `auth_sign_in_completed`, and `auth_sign_in_failed`.
+- 2026-06-16 — PostHog action debugging found that homepage/app links were plain server `Link`s, so clicks relied on autocapture. Added explicit `navigation_clicked` and `cta_clicked` tracking via `TrackedLink`, plus `allowedDevOrigins` for 127.0.0.1 local testing.
 
 ---
 
@@ -70,3 +74,4 @@ Update this file after every completed feature. Any AI agent reading this should
 - 2026-06-16 — `npm install @insforge/sdk@latest` completed; npm reported 6 audit issues already present after install, not auto-fixed to avoid unrelated dependency churn.
 - 2026-06-16 — Security audit follow-up: resolved all 6 npm audit findings with targeted overrides for `ws@8.21.0` and `postcss@8.5.15`; `npm audit`, `npm run lint`, and `npm run build` pass.
 - 2026-06-16 — Auth recover pass: fixed Google sign-in startup by normalizing the existing InsForge env names. `.env.local` uses `INSFORGE_PROJECT_URL` for the backend URL and `NEXT_PUBLIC_INSFORGE_PROJECT_KEY` for the public anon key, while `NEXT_PUBLIC_INSFORGE_PROJECT_URL` is not a URL. Added `/api/auth/config` so browser auth receives the normalized config.
+- 2026-06-16 — PostHog verification: `npm run lint` and `npm run build` pass after adding `posthog-js`, `posthog-node`, the browser analytics provider, and server capture helper.

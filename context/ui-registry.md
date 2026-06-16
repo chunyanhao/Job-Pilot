@@ -170,13 +170,33 @@ Last updated: 2026-06-16
 | Border radius    | `none`                                     |
 | Text — primary   | `text-text-dark`                           |
 | Text — secondary | `none`                                     |
-| Spacing          | `h-16 px-6 gap-10`                         |
-| Hover state      | `hover:text-accent`                        |
+| Spacing          | `h-16 px-6 gap-10`, `gap-6`                |
+| Hover state      | `hover:text-accent`, `hover:bg-surface-secondary` |
 | Shadow           | `none`                                     |
 | Accent usage     | `hover:text-accent`                        |
 
 **Pattern notes:**
-Authenticated app navigation mirrors the homepage navbar height, logo sizing, link weight, and token-backed hover color. It intentionally omits the landing-page CTA.
+Authenticated app navigation mirrors the homepage navbar height, logo sizing, link weight, and token-backed hover color. It includes a compact secondary-style Logout button on the right side.
+
+### Logout Button
+
+File: `components/auth/LogoutButton.tsx`
+Last updated: 2026-06-16
+
+| Property         | Class |
+| ---------------- | ----- |
+| Background       | `bg-surface` |
+| Border           | `border border-border` |
+| Border radius    | `rounded-md` |
+| Text — primary   | `text-text-primary`, `disabled:text-text-muted` |
+| Text — secondary | `none` |
+| Spacing          | `px-4 py-2` |
+| Hover state      | `hover:bg-surface-secondary` |
+| Shadow           | `none` |
+| Accent usage     | `none` |
+
+**Pattern notes:**
+Logout uses the standard secondary button treatment so the authenticated navbar gains an account action without competing with primary app navigation. Pending and retry states reuse the same fixed button footprint.
 
 ### Protected Placeholder Cards
 
@@ -197,3 +217,43 @@ Last updated: 2026-06-16
 
 **Pattern notes:**
 Temporary protected pages use one standard white surface card inside the authenticated app shell. Keep these placeholders compact and token-only until the full dashboard, profile, jobs, and job-details UIs replace them in later phases.
+
+### Analytics Provider
+
+File: `components/analytics/PostHogProvider.tsx`
+Last updated: 2026-06-16
+
+| Property         | Class |
+| ---------------- | ----- |
+| Background       | `none` |
+| Border           | `none` |
+| Border radius    | `none` |
+| Text — primary   | `none` |
+| Text — secondary | `none` |
+| Spacing          | `none` |
+| Hover state      | `none` |
+| Shadow           | `none` |
+| Accent usage     | `none` |
+
+**Pattern notes:**
+Non-visual client provider mounted inside the server root layout. It initializes PostHog and captures manual pageviews without adding layout wrappers, classes, or visible UI.
+
+### Tracked Link
+
+File: `components/analytics/TrackedLink.tsx`
+Last updated: 2026-06-16
+
+| Property         | Class |
+| ---------------- | ----- |
+| Background       | `inherited from caller` |
+| Border           | `inherited from caller` |
+| Border radius    | `inherited from caller` |
+| Text — primary   | `inherited from caller` |
+| Text — secondary | `inherited from caller` |
+| Spacing          | `inherited from caller` |
+| Hover state      | `inherited from caller` |
+| Shadow           | `inherited from caller` |
+| Accent usage     | `inherited from caller` |
+
+**Pattern notes:**
+Client wrapper around `next/link` for explicit PostHog click events. It does not add styling; callers pass the same token-backed classes they would pass to `Link`.

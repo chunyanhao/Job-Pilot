@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { getInsforgeBrowserConfig } from "@/lib/insforge-client";
+import { capturePostHogEvent, identifyPostHogUser } from "@/lib/posthog-client";
+import type { AuthProvider } from "@/lib/posthog-events";
 
 const pkceVerifierKey = "insforge_pkce_verifier";
+const pkceProviderKey = "jobpilot_oauth_provider";
 
 type OAuthExchangeResponse = {
   accessToken?: string;
   refreshToken?: string;
-  user?: unknown;
+  userId?: string;
 };
 
 function parseOAuthExchangeResponse(body: unknown): OAuthExchangeResponse | null {
@@ -21,8 +24,24 @@ function parseOAuthExchangeResponse(body: unknown): OAuthExchangeResponse | null
   return {
     accessToken: typeof candidate.accessToken === "string" ? candidate.accessToken : undefined,
     refreshToken: typeof candidate.refreshToken === "string" ? candidate.refreshToken : undefined,
-    user: candidate.user,
+    userId:
+      candidate.user &&
+      typeof candidate.user === "object" &&
+      "id" in candidate.user &&
+      typeof candidate.user.id === "string"
+        ? candidate.user.id
+        : undefined,
   };
+}
+
+function readStoredOAuthProvider(): AuthProvider | undefined {
+  const provider = window.sessionStorage.getItem(pkceProviderKey);
+
+  if (provider === "google" || provider === "github") {
+    return provider;
+  }
+
+  return undefined;
 }
 
 export function AuthCallback() {
@@ -33,15 +52,26 @@ export function AuthCallback() {
     const finishOAuthSignIn = async (): Promise<void> => {
       try {
         const params = new URLSearchParams(window.location.search);
+        const provider = readStoredOAuthProvider();
         const providerError = params.get("error") || params.get("insforge_error");
         const code = params.get("insforge_code");
 
         if (providerError) {
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "provider_error",
+            stage: "callback",
+          });
           setErrorMessage("Sign in was cancelled or could not be completed.");
           return;
         }
 
         if (!code) {
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "missing_code",
+            stage: "callback",
+          });
           setErrorMessage("The sign in callback was missing its verification code.");
           return;
         }
@@ -49,6 +79,11 @@ export function AuthCallback() {
         const codeVerifier = window.sessionStorage.getItem(pkceVerifierKey);
 
         if (!codeVerifier) {
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "missing_verifier",
+            stage: "callback",
+          });
           setErrorMessage("The sign in session expired. Please start again.");
           return;
         }
@@ -73,6 +108,11 @@ export function AuthCallback() {
 
         if (!exchangeResponse.ok) {
           console.error("[AuthCallback] OAuth exchange failed", exchangeBody);
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "exchange_failed",
+            stage: "callback",
+          });
           setErrorMessage("We could not verify your sign in. Please try again.");
           return;
         }
@@ -81,11 +121,17 @@ export function AuthCallback() {
 
         if (!session?.accessToken) {
           console.error("[AuthCallback] OAuth exchange returned no access token", exchangeBody);
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "missing_access_token",
+            stage: "callback",
+          });
           setErrorMessage("Sign in did not return a valid session. Please try again.");
           return;
         }
 
         window.sessionStorage.removeItem(pkceVerifierKey);
+        window.sessionStorage.removeItem(pkceProviderKey);
         window.history.replaceState(null, "", "/callback");
         setStatusMessage("Opening your dashboard...");
 
@@ -103,13 +149,30 @@ export function AuthCallback() {
 
         if (!sessionResponse.ok) {
           console.error("[AuthCallback] Failed to persist session", await sessionResponse.text());
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "session_persist_failed",
+            stage: "session",
+          });
           setErrorMessage("We signed you in, but could not save the browser session.");
           return;
+        }
+
+        if (session.userId) {
+          identifyPostHogUser(session.userId);
+          capturePostHogEvent("auth_sign_in_completed", {
+            provider,
+            userId: session.userId,
+          });
         }
 
         window.location.replace("/dashboard");
       } catch (error) {
         console.error("[AuthCallback]", error);
+        capturePostHogEvent("auth_sign_in_failed", {
+          reason: "unexpected_error",
+          stage: "callback",
+        });
         setErrorMessage("We could not finish sign in. Please try again.");
       }
     };

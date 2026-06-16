@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { createInsforgeBrowser, getInsforgeBrowserConfig } from "@/lib/insforge-client";
+import { capturePostHogEvent } from "@/lib/posthog-client";
+import type { AuthProvider } from "@/lib/posthog-events";
 
-type OAuthProvider = "google" | "github";
+const pkceProviderKey = "jobpilot_oauth_provider";
+
+type OAuthProvider = AuthProvider;
 
 const providers: Array<{ id: OAuthProvider; label: string }> = [
   { id: "google", label: "Continue with Google" },
@@ -17,6 +21,8 @@ export function LoginPanel() {
   const handleOAuthSignIn = async (provider: OAuthProvider): Promise<void> => {
     setPendingProvider(provider);
     setErrorMessage(null);
+    window.sessionStorage.setItem(pkceProviderKey, provider);
+    capturePostHogEvent("auth_sign_in_started", { provider });
 
     try {
       const config = await getInsforgeBrowserConfig();
@@ -29,11 +35,21 @@ export function LoginPanel() {
 
       if (error) {
         console.error("[LoginPanel]", error.message);
+        capturePostHogEvent("auth_sign_in_failed", {
+          provider,
+          reason: "provider_rejected",
+          stage: "start",
+        });
         setErrorMessage("We could not start sign in. Please try again.");
         setPendingProvider(null);
       }
     } catch (error) {
       console.error("[LoginPanel]", error);
+      capturePostHogEvent("auth_sign_in_failed", {
+        provider,
+        reason: "config_error",
+        stage: "start",
+      });
       setErrorMessage("Auth is not configured yet. Check the InsForge environment settings.");
       setPendingProvider(null);
     }

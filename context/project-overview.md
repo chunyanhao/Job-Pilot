@@ -38,6 +38,7 @@ Dashboard    Find Jobs    Profile
 ```
 
 Full width layout on all pages. No sidebar.
+Authenticated pages also show a compact Logout action in the top navbar.
 
 ---
 
@@ -207,6 +208,11 @@ Full width layout on all pages. No sidebar.
 ## PostHog Events
 
 ```typescript
+navigation_clicked; // { href, label, surface }
+cta_clicked; // { href, label, surface }
+auth_sign_in_started; // { provider }
+auth_sign_in_completed; // { userId, provider }
+auth_sign_in_failed; // { provider, stage, reason }
 job_search_started; // { userId, jobTitle, location }
 job_found; // { userId, source, matchScore }
 profile_completed; // { userId }

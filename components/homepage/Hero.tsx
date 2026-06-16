@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 type HeroProps = {
   primaryHref?: string;
@@ -20,18 +20,22 @@ export function Hero({ primaryHref = "/login", secondaryHref = "/find-jobs" }: H
             Stop applying blind. JobPilot finds the jobs, researches the companies, and gives you everything you need to stand out.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
+            <TrackedLink
               href={primaryHref}
               className="rounded-md bg-text-slate px-6 py-3 text-sm font-medium text-surface shadow-card transition-colors hover:bg-overlay"
+              eventName="cta_clicked"
+              eventProperties={{ href: primaryHref, label: "Get Started", surface: "home_hero" }}
             >
               Get Started
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={secondaryHref}
               className="rounded-md border border-border bg-surface px-6 py-3 text-sm font-medium text-text-primary shadow-card transition-colors hover:bg-surface-secondary"
+              eventName="cta_clicked"
+              eventProperties={{ href: secondaryHref, label: "Find Your First Match", surface: "home_hero" }}
             >
               Find Your First Match
-            </Link>
+            </TrackedLink>
           </div>
         </div>
 

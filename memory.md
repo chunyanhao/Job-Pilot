@@ -1,69 +1,66 @@
-# Memory — Homepage Feature
+# Memory — PostHog, Auth Shell, and Logout
 
-Last updated: 2026-06-15 16:05 America/New_York
+Last updated: 2026-06-16 14:20 America/New_York
 
 ## What was built
 
-Completed Phase 1 Feature 01 — Homepage.
+Completed and verified the current PostHog/auth shell work.
 
 Created:
-- `components/layout/HomeNavbar.tsx`
-- `components/layout/HomeFooter.tsx`
-- `components/homepage/Hero.tsx`
-- `components/homepage/FeatureSections.tsx`
-- `components/homepage/Testimonial.tsx`
-- `components/homepage/BottomCta.tsx`
+- `components/analytics/PostHogProvider.tsx`
+- `components/analytics/TrackedLink.tsx`
+- `components/auth/LogoutButton.tsx`
+- `lib/posthog-client.ts`
+- `lib/posthog-server.ts`
+- `lib/posthog-events.ts`
+- `posthog-setup-report.md` from the PostHog wizard
 
 Modified:
-- `app/page.tsx` now composes the complete homepage.
-- `app/layout.tsx` metadata now uses JobPilot title and description.
-- `app/globals.css` now includes token-backed homepage utilities: `hero-wash`, `section-grid`, `diagonal-band`, plus `shadow-card` and `shadow-preview`.
-- `context/ui-registry.md` was updated with homepage component patterns.
-- `context/progress-tracker.md` marks `01 Homepage` complete and sets `02 Auth` as next.
-
-The homepage uses provided public assets:
-- `/logo.png`
-- `/images/dashboard-demo.png`
-- `/images/jobs-lists.png`
-- `/images/agnet-log.png`
-- `/images/user-icon.png`
+- `app/layout.tsx` wraps the app in `PostHogProvider`.
+- `components/auth/LoginPanel.tsx` tracks OAuth sign-in start and safe failure states.
+- `components/auth/AuthCallback.tsx` tracks OAuth success/failure and identifies the user on successful session persistence.
+- `components/layout/HomeNavbar.tsx`, `components/layout/AppNavbar.tsx`, `components/layout/HomeFooter.tsx`, `components/homepage/Hero.tsx`, and `components/homepage/BottomCta.tsx` use `TrackedLink` for explicit navigation/CTA tracking.
+- `components/layout/AppNavbar.tsx` now includes `LogoutButton`.
+- `next.config.ts` includes PostHog `/ingest/*` rewrites and `allowedDevOrigins: ["127.0.0.1"]`.
+- `context/project-overview.md`, `context/code-standards.md`, `context/ui-registry.md`, and `context/progress-tracker.md` were updated for PostHog events and the logout pattern.
+- `package.json` / `package-lock.json` include `posthog-js` and `posthog-node`.
 
 ## Decisions made
 
-- Built the homepage as static server-rendered UI first, matching the project build plan before auth or data wiring.
-- Kept all component colors on project tokens. No raw Tailwind color classes or hardcoded component hex values were introduced.
-- Used `next/link` for navigation and `next/image` for public assets, after checking the installed Next.js 16 docs.
-- Primary homepage CTAs use `bg-text-slate text-surface`; secondary CTAs use `border-border bg-surface text-text-primary`.
-- Reusable visual effects that need gradients or patterns live in `app/globals.css` as token-backed utilities instead of inline styles in components.
+- PostHog browser traffic routes through `/ingest` rewrites instead of direct browser calls to PostHog.
+- Browser PostHog is initialized in a small client provider inside the server root layout, keeping `app/layout.tsx` server-rendered.
+- Explicit click events are used for current navigational actions because relying only on PostHog autocapture made action tracking unclear.
+- Custom event names currently include `navigation_clicked`, `cta_clicked`, `auth_sign_in_started`, `auth_sign_in_completed`, `auth_sign_in_failed`, plus the planned business events.
+- Logout is implemented as a small client component inside the authenticated navbar, not by converting the whole navbar to a client component.
 
 ## Problems solved
 
-- Replaced the starter homepage placeholder that used raw `bg-blue-500 text-white`, which violated the project UI token rules.
-- `npm run dev` could not start because a stale Next dev lock claimed port 3000. Production server verification was used on port 3001 instead.
-- Starting a local server required escalated permission because the sandbox blocked port binding.
-- The in-app browser automation runtime was not exposed in this session, so automated screenshot verification was unavailable.
+- The user could not see a logout option because authenticated pages only rendered Dashboard, Find Jobs, and Profile. Added `LogoutButton` to the right side of `AppNavbar`.
+- The user could not see PostHog action events because most current app actions were plain `Link`s and explicit custom events existed only for pageviews/auth. Added `TrackedLink` for nav and CTA clicks.
+- Local testing from `127.0.0.1` triggered a Next dev-origin warning. Added `allowedDevOrigins` for `127.0.0.1`.
+- Verified the PostHog proxy path reaches PostHog: `/ingest/e/` returns PostHog's expected empty-request `400`, showing the rewrite is active.
 
 ## Current state
 
-- `npm run build` passes.
 - `npm run lint` passes.
-- Local production server responded `200 OK` at `http://127.0.0.1:3001`.
-- Homepage markup includes all major sections from `context/designs/landing-page.png`: navbar, hero, dashboard preview, two feature bands, testimonial, bottom CTA, and footer.
-- Manual visual inspection in a browser is still recommended because automated screenshot verification was unavailable.
-- Worktree still includes pre-existing modified/untracked files outside the homepage work, including `AGENTS.md` and several `.agents/skills/tailwind-*` directories. Do not assume those were created by the homepage implementation.
+- `npm run build` passes.
+- Local dev server was active at `http://localhost:3000` and root returned `200 OK`.
+- Reliable current events to test: `$pageview`, `navigation_clicked`, `cta_clicked`, `auth_sign_in_started`, `auth_sign_in_completed`, `auth_sign_in_failed`.
+- Planned product events `job_search_started`, `job_found`, `profile_completed`, and `company_researched` are typed but not fully wired because those feature surfaces are not built yet.
+- Review found the PostHog/logout work broadly aligned, but auth is not production-safe yet because `app/api/auth/session/route.ts` still accepts client-supplied access/refresh tokens and writes them directly into cookies.
 
 ## Next session starts with
 
-Start Phase 1 Feature 02 — Auth.
+Fix the auth trust boundary before moving to the next product feature.
 
-Before implementation:
-1. Read `AGENTS.md` and the required context files in order.
-2. Check the installed Next.js 16 docs for middleware, route handlers, redirects, and auth-related App Router APIs.
-3. Check whether an InsForge skill or MCP tool is available before using InsForge APIs.
-4. Inspect the current homepage manually at `http://localhost:3001` if visual confirmation is still needed.
+Specifically:
+1. Re-read current InsForge docs before editing auth/session code.
+2. Change `app/api/auth/session/route.ts` so cookies are only minted from a server-verified token or from a server-side OAuth exchange response.
+3. Re-run `npm run lint`, `npm run build`, and protected-route smoke tests.
+4. After auth hardening, continue with Phase 1 Feature 04 — Database Schema.
 
 ## Open questions
 
-- Need manual browser confirmation that the homepage exactly matches `context/designs/landing-page.png` at the intended desktop viewport.
-- Need to resolve or ignore the stale Next dev lock on port 3000 before relying on `npm run dev`.
-- Auth implementation depends on current InsForge package/API availability; verify before coding.
+- Should logout also emit an explicit `auth_signed_out` event? If yes, add it first to `context/code-standards.md` and `lib/posthog-events.ts`.
+- Should returning authenticated users be identified on page load, not only immediately after OAuth callback?
+- Should PostHog `ui_host` and rewrites be made environment-aware for non-US PostHog hosts, or is the current US project fixed for this app?

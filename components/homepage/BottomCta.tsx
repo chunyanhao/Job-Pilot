@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 type BottomCtaProps = {
   primaryHref?: string;
@@ -17,18 +17,22 @@ export function BottomCta({ primaryHref = "/login", secondaryHref = "/find-jobs"
             Set up your profile, upload your resume, and start finding matches in minutes.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
+            <TrackedLink
               href={primaryHref}
               className="rounded-md bg-text-slate px-6 py-3 text-sm font-medium text-surface shadow-card transition-colors hover:bg-overlay"
+              eventName="cta_clicked"
+              eventProperties={{ href: primaryHref, label: "Get Started", surface: "home_bottom_cta" }}
             >
               Get Started
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={secondaryHref}
               className="rounded-md border border-border bg-surface px-6 py-3 text-sm font-medium text-text-primary shadow-card transition-colors hover:bg-surface-secondary"
+              eventName="cta_clicked"
+              eventProperties={{ href: secondaryHref, label: "Find Your First Match", surface: "home_bottom_cta" }}
             >
               Find Your First Match
-            </Link>
+            </TrackedLink>
           </div>
         </div>
         <div className="diagonal-band h-20 border-t border-border" />
