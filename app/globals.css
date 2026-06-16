@@ -127,3 +127,55 @@ body {
       var(--color-surface-secondary) 7px
     );
 }
+
+.profile-completion-ring {
+  background: conic-gradient(var(--color-error) 0 70%, var(--color-accent-light) 70% 100%);
+}
+
+.profile-input {
+  min-height: 42px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.profile-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.profile-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.profile-add-button {
+  min-height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-secondary);
+  padding: 0.5rem 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: background 150ms ease;
+}
+
+.profile-add-button:hover {
+  background: var(--color-surface-muted);
+}
+
+.profile-upload-zone:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}

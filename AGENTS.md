@@ -69,3 +69,9 @@ Important InsForge conventions:
 - For custom auth UI, use auth SDK documentation.
 - For prebuilt auth UI, use the framework-specific auth component documentation.
 - Keep Tailwind CSS at 3.4; do not upgrade to Tailwind v4.
+
+## Installed InsForge Tooling
+
+- InsForge MCP is configured for Codex.
+- Use the InsForge MCP tools for backend infrastructure tasks.
+- Do not store InsForge API keys in this file.

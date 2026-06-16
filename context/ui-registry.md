@@ -200,7 +200,7 @@ Logout uses the standard secondary button treatment so the authenticated navbar 
 
 ### Protected Placeholder Cards
 
-File: `app/dashboard/page.tsx`, `app/profile/page.tsx`, `app/find-jobs/page.tsx`, `app/find-jobs/[id]/page.tsx`
+File: `app/dashboard/page.tsx`, `app/find-jobs/page.tsx`, `app/find-jobs/[id]/page.tsx`
 Last updated: 2026-06-16
 
 | Property         | Class                                                        |
@@ -217,6 +217,26 @@ Last updated: 2026-06-16
 
 **Pattern notes:**
 Temporary protected pages use one standard white surface card inside the authenticated app shell. Keep these placeholders compact and token-only until the full dashboard, profile, jobs, and job-details UIs replace them in later phases.
+
+### Profile Page Full UI
+
+File: `components/profile/ProfilePageContent.tsx`
+Last updated: 2026-06-16
+
+| Property         | Class |
+| ---------------- | ----- |
+| Background       | `bg-background`, `bg-surface`, `bg-surface-secondary` |
+| Border           | `border border-border`, `border border-error/20`, `border border-dashed border-border`, `border-b border-border`, `border-t border-border` |
+| Border radius    | `rounded-xl` for page cards, `rounded-lg` for embedded panels and upload zone, `rounded-md` for inputs/buttons/tags |
+| Text — primary   | `text-text-primary` |
+| Text — secondary | `text-text-secondary`, `text-text-muted` |
+| Spacing          | `max-w-[872px]`, `px-4 py-8`, `p-6`, `py-8`, `gap-4`, `gap-6`, `mt-6` |
+| Hover state      | `hover:bg-surface-muted`, `hover:bg-accent-dark`, `hover:text-accent-dark` |
+| Shadow           | `shadow-card` |
+| Accent usage     | `bg-accent text-accent-foreground`, `text-accent`, `accent-accent`, `profile-completion-ring` |
+
+**Pattern notes:**
+Profile UI uses a narrow centered app workspace that matches the supplied mockup instead of the full 1440px content width. Form controls share the token-backed `.profile-input` utility in `app/globals.css`; keep future profile form fields on this utility so the save/extraction phases do not drift visually.
 
 ### Analytics Provider
 

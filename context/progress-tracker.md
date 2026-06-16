@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 1 — Foundation
-**Last completed:** 03 PostHog Initialization
-**Next:** 04 Database Schema
+**Phase:** Phase 2 — Profile Page
+**Last completed:** 05 Profile Page — Full UI
+**Next:** 06 Profile Save Logic
 
 ---
 
@@ -19,11 +19,11 @@ Update this file after every completed feature. Any AI agent reading this should
 - [x] 01 Homepage
 - [x] 02 Auth
 - [x] 03 PostHog Initialization
-- [ ] 04 Database Schema
+- [x] 04 Database Schema
 
 ### Phase 2 — Profile Page
 
-- [ ] 05 Profile Page — Full UI
+- [x] 05 Profile Page — Full UI
 - [ ] 06 Profile Save Logic
 - [ ] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
@@ -60,6 +60,11 @@ Update this file after every completed feature. Any AI agent reading this should
 - 2026-06-16 — PostHog initialized with a small client provider inside the server root layout. Browser events use `posthog-js`; server-side future events use `posthog-node` with `flushAt: 1`, `flushInterval: 0`, and `shutdown()` in the helper.
 - 2026-06-16 — Current app analytics track manual `$pageview` events plus safe OAuth lifecycle events: `auth_sign_in_started`, `auth_sign_in_completed`, and `auth_sign_in_failed`.
 - 2026-06-16 — PostHog action debugging found that homepage/app links were plain server `Link`s, so clicks relied on autocapture. Added explicit `navigation_clicked` and `cta_clicked` tracking via `TrackedLink`, plus `allowedDevOrigins` for 127.0.0.1 local testing.
+- 2026-06-16 — Database schema applied through InsForge MCP as a strict foundation. The live backend now has `profiles`, `agent_runs`, `jobs`, and `agent_logs` with ownership columns, constraints, indexes, foreign keys, triggers, and RLS policies using `auth.uid()`.
+- 2026-06-16 — Added `context/insforge-schema.sql` as the repo-local schema artifact for future comparison and reapplication.
+- 2026-06-16 — Created the private InsForge `resumes` storage bucket for authenticated resume PDF storage.
+- 2026-06-16 — Profile Page Full UI built from `context/designs/profile.png` as mock-data UI only. Save logic, resume upload persistence, extraction, and generation remain scoped to Features 06-08.
+- 2026-06-16 — Closed the prior open questions for Feature 05: auth hardening is deferred until before production reliance on auth/session data, logout-specific `auth_signed_out` is not added because it is not in the approved event list, and returning-user identification remains part of a future auth/session polish pass rather than Profile UI.
 
 ---
 
@@ -75,3 +80,5 @@ Update this file after every completed feature. Any AI agent reading this should
 - 2026-06-16 — Security audit follow-up: resolved all 6 npm audit findings with targeted overrides for `ws@8.21.0` and `postcss@8.5.15`; `npm audit`, `npm run lint`, and `npm run build` pass.
 - 2026-06-16 — Auth recover pass: fixed Google sign-in startup by normalizing the existing InsForge env names. `.env.local` uses `INSFORGE_PROJECT_URL` for the backend URL and `NEXT_PUBLIC_INSFORGE_PROJECT_KEY` for the public anon key, while `NEXT_PUBLIC_INSFORGE_PROJECT_URL` is not a URL. Added `/api/auth/config` so browser auth receives the normalized config.
 - 2026-06-16 — PostHog verification: `npm run lint` and `npm run build` pass after adding `posthog-js`, `posthog-node`, the browser analytics provider, and server capture helper.
+- 2026-06-16 — Database verification: InsForge MCP `get_backend_metadata` shows all four tables with 0 records and the private `resumes` bucket. `get_table_schema` confirms RLS is enabled on all four tables and ownership policies are present.
+- 2026-06-16 — Profile UI verification: `npm run lint` and `npm run build` pass. Local dev server serves `/login` with `200 OK`; unauthenticated `/profile` still redirects to `/login?next=%2Fprofile`.
