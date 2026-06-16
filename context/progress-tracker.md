@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:**
-**Last completed:**
-**Next:**
+**Phase:** Phase 1 — Foundation
+**Last completed:** 02 Auth
+**Next:** 03 PostHog Initialization
 
 ---
 
@@ -16,8 +16,8 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 1 — Foundation
 
-- [ ] 01 Homepage
-- [ ] 02 Auth
+- [x] 01 Homepage
+- [x] 02 Auth
 - [ ] 03 PostHog Initialization
 - [ ] 04 Database Schema
 
@@ -50,10 +50,23 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Decisions Made During Build
 
-_Add decisions here as they are made during implementation._
+- 2026-06-15 — Homepage built as static server-rendered UI first, matching the build-plan sequence before auth/data wiring.
+- 2026-06-15 — Reused public assets for design fidelity: `/logo.png`, `/images/dashboard-demo.png`, `/images/jobs-lists.png`, `/images/agnet-log.png`, and `/images/user-icon.png`.
+- 2026-06-15 — Added token-backed global utilities `hero-wash`, `section-grid`, `diagonal-band`, `shadow-card`, and `shadow-preview` so homepage components avoid hardcoded colors.
+- 2026-06-16 — Auth implemented with the current InsForge MCP guidance using `@insforge/sdk` plus `@insforge/sdk/ssr`; older local docs still mention `@insforge/ssr`.
+- 2026-06-16 — Next.js 16 route protection uses `proxy.ts` with InsForge `updateSession()` instead of the older `middleware.ts` convention.
+- 2026-06-16 — OAuth callback exchanges `insforge_code` with the browser-held PKCE verifier, then persists app-domain SSR cookies through `/api/auth/session`.
 
 ---
 
 ## Notes
 
-_Add notes here as the build progresses — workarounds, patterns, anything that differs from the context files._
+- 2026-06-15 — `npm run build` and `npm run lint` both pass after homepage implementation.
+- 2026-06-15 — Local production server responds with `200 OK` at `http://127.0.0.1:3001`. In-app browser automation was not exposed in this session, so visual verification should be done manually in the browser.
+- 2026-06-15 — `npm run dev` found a stale Next dev lock for port 3000; production server was used for local response verification on port 3001.
+- 2026-06-16 — Auth verification: `npm run lint` passes; `npm run build` passes.
+- 2026-06-16 — Dev smoke test: `/login` returns `200 OK`; unauthenticated `/dashboard` redirects to `/login?next=%2Fdashboard`.
+- 2026-06-16 — In-app browser automation was not exposed after tool discovery; visual auth verification remains manual.
+- 2026-06-16 — `npm install @insforge/sdk@latest` completed; npm reported 6 audit issues already present after install, not auto-fixed to avoid unrelated dependency churn.
+- 2026-06-16 — Security audit follow-up: resolved all 6 npm audit findings with targeted overrides for `ws@8.21.0` and `postcss@8.5.15`; `npm audit`, `npm run lint`, and `npm run build` pass.
+- 2026-06-16 — Auth recover pass: fixed Google sign-in startup by normalizing the existing InsForge env names. `.env.local` uses `INSFORGE_PROJECT_URL` for the backend URL and `NEXT_PUBLIC_INSFORGE_PROJECT_KEY` for the public anon key, while `NEXT_PUBLIC_INSFORGE_PROJECT_URL` is not a URL. Added `/api/auth/config` so browser auth receives the normalized config.
