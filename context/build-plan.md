@@ -88,7 +88,7 @@ Build the complete profile page UI with mock data. No save logic yet.
 **UI:**
 
 - Profile needs attention banner at top — completion percentage ring, missing field tags highlighted (e.g. PHONE, LOCATION, EDUCATION)
-- Resume section — drag and drop upload area, "Click to upload or drag and drop" text, PDF only note, Select Resume button, Generate Resume from Profile button below
+- Resume section — drag and drop upload area, "Click to upload or drag and drop" text, PDF only note, Select Resume button
 - Profile Information form with clearly labeled sections:
   - Personal Info — Full Name, Email (pre-filled, not editable), Phone Number, Location, LinkedIn URL, Portfolio/GitHub, Work Authorization dropdown
   - Professional Info — Current Job Title, Experience Level dropdown, Years of Experience, Skills tag input with Add button, Industries tag input with Add button
@@ -138,19 +138,22 @@ Extract from Resume button — GPT-4o reads uploaded PDF and auto-fills profile 
 
 ### 08 Resume PDF Generation from Profile
 
-Generate a clean professional PDF resume from current profile data using GPT-4o.
+Generate a simple professional PDF resume from the user's saved profile fields.
+
+**UI:**
+
+- Download Generated Resume action in the Profile page resume section
+- Copy clarifies that the user should save profile changes before exporting
+- Uploaded current resume remains separate and unchanged
 
 **Logic:**
 
-- POST /api/resume/generate
-- Reads current profile data from profiles table
-- GPT-4o generates professional resume content:
-  - Professional summary paragraph
-  - Polished work experience bullet points
-  - Clean professional language throughout
-- @react-pdf/renderer renders GPT-4o output into clean single-page PDF using renderToBuffer()
-- Buffer uploaded to InsForge Storage at resumes/{user_id}/resume.pdf with upsert: true
-- resume_pdf_url updated in profiles table
+- GET /api/resume/generate is authenticated
+- Route loads the current user's saved profiles row from InsForge
+- PDF is generated on demand from saved profile fields
+- PDF streams directly to the browser as a download
+- Generated PDF is not saved to InsForge Storage or the database
+- Uploaded resume_pdf_url is never overwritten by generated PDF output
 
 ---
 

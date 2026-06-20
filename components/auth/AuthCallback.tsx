@@ -20,10 +20,12 @@ function parseOAuthExchangeResponse(body: unknown): OAuthExchangeResponse | null
   }
 
   const candidate = body as Record<string, unknown>;
+  const accessToken = typeof candidate.accessToken === "string" ? candidate.accessToken : candidate.access_token;
+  const refreshToken = typeof candidate.refreshToken === "string" ? candidate.refreshToken : candidate.refresh_token;
 
   return {
-    accessToken: typeof candidate.accessToken === "string" ? candidate.accessToken : undefined,
-    refreshToken: typeof candidate.refreshToken === "string" ? candidate.refreshToken : undefined,
+    accessToken: typeof accessToken === "string" ? accessToken : undefined,
+    refreshToken: typeof refreshToken === "string" ? refreshToken : undefined,
     userId:
       candidate.user &&
       typeof candidate.user === "object" &&
@@ -90,7 +92,9 @@ export function AuthCallback() {
 
         const { baseUrl, anonKey } = await getInsforgeBrowserConfig();
         const exchangeUrl = new URL("/api/auth/oauth/exchange", baseUrl).toString();
-        const exchangeResponse = await fetch(exchangeUrl, {
+        const mobileExchangeUrl = new URL(exchangeUrl);
+        mobileExchangeUrl.searchParams.set("client_type", "mobile");
+        const exchangeResponse = await fetch(mobileExchangeUrl, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -127,6 +131,17 @@ export function AuthCallback() {
             stage: "callback",
           });
           setErrorMessage("Sign in did not return a valid session. Please try again.");
+          return;
+        }
+
+        if (!session.refreshToken) {
+          console.error("[AuthCallback] OAuth exchange returned no refresh token", exchangeBody);
+          capturePostHogEvent("auth_sign_in_failed", {
+            provider,
+            reason: "missing_refresh_token",
+            stage: "callback",
+          });
+          setErrorMessage("Sign in did not return a lasting session. Please try again.");
           return;
         }
 

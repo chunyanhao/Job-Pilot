@@ -1,64 +1,66 @@
-# Memory — InsForge Schema Foundation
+# Memory — Profile Features 6-8
 
-Last updated: 2026-06-16 16:07 EDT
+Last updated: 2026-06-18
 
 ## What was built
 
-Completed Phase 1 Feature 04 — Database Schema.
+Completed Phase 2 profile functionality through Feature 08.
 
 Created:
-- `context/insforge-schema.sql` with the strict JobPilot InsForge schema.
+- `actions/profile.ts` for authenticated profile save, profile upsert, resume upload, completion calculation, and first-completion `profile_completed` capture.
+- `agent/profile-extractor.ts` for server-side PDF text extraction plus GPT-4o profile-field extraction.
+- `app/api/resume/extract/route.ts` for protected resume extraction.
+- `app/api/resume/current/route.ts` for opening the saved private resume through an authenticated app route instead of a raw InsForge storage URL.
+- `app/api/resume/generate/route.ts` for authenticated generated-resume PDF download.
+- `lib/profile.ts`, `types/profile.ts`, and `lib/resume-pdf.ts`.
 
 Modified:
-- `context/progress-tracker.md` now marks `04 Database Schema` complete and sets `05 Profile Page — Full UI` as next.
-- `AGENTS.md` was repaired after the InsForge installer overwrote the project rules. It now preserves the original project instructions and adds a short note that InsForge MCP is configured for Codex.
-
-Live InsForge backend now has:
-- `profiles`
-- `agent_runs`
-- `jobs`
-- `agent_logs`
-- private `resumes` storage bucket
+- `app/profile/page.tsx` now loads the authenticated user's saved profile and redirects unauthenticated users to login.
+- `components/profile/ProfilePageContent.tsx` is now a live editable profile form with save, upload, extraction, current-resume link, completion state, and generated-resume download.
+- `next.config.ts` now sets Server Action body size to `6mb` and externalizes `pdfkit`.
+- `package.json`/`package-lock.json` now include `pdf-parse`, `openai`, `pdfkit`, and `@types/pdfkit`.
+- `context/build-plan.md`, `context/progress-tracker.md`, `context/ui-registry.md`, and `context/library-docs.md` were updated for Features 06-08.
 
 ## Decisions made
 
-- Feature 04 uses a strict foundation, not a loose MVP schema.
-- Backend infrastructure tasks go through InsForge MCP/CLI tooling.
-- The repo-local schema artifact lives at `context/insforge-schema.sql`.
-- `profiles.id` is the app user id and references `auth.users(id)`.
-- All other app-owned tables use `user_id` and RLS ownership policies based on `auth.uid()`.
-- `jobs.source` supports both `'search'` and `'url'`, even though current app scope only creates `'search'` jobs.
-- `ui-registry.md` was intentionally not updated because no UI component changed.
+- Profile starts empty except for the authenticated account email fallback; no predefined examples.
+- Email is displayed as read-only and comes from auth/user profile fallback.
+- Profile completeness is calculated from actual required fields and starts low/empty when the user has not filled anything.
+- Uploaded resume remains the user-managed current resume in the private `resumes` bucket.
+- Saved current resume opens through `/api/resume/current` in a new tab so private storage access stays authenticated.
+- AI resume extraction fills the form from the selected PDF, then the user reviews and saves manually.
+- Resume PDF generation was restored to scope as a download-only export from saved profile data.
+- Generated PDFs do not use GPT, do not save to InsForge Storage or DB, and do not overwrite `resume_pdf_url`.
+- PDFKit must be listed in `serverExternalPackages` because Next/Turbopack otherwise rewrites its built-in Helvetica font asset path.
 
 ## Problems solved
 
-- InsForge installer initially required an API key and then overwrote `AGENTS.md`; the project-specific instructions were restored and merged with a small InsForge tooling note.
-- Verified the InsForge SQL environment before writing policies: `auth.uid()`, `auth.jwt()`, `auth.role()`, `auth.users`, and `pgcrypto` are available.
-- Applied schema successfully through InsForge MCP and verified the live backend state afterward.
+- Removed profile mock prefill and fixed the incorrect 70% completion issue on an empty profile.
+- Fixed email editing confusion by making email auth-derived/read-only and ensuring it is populated from the signed-in user.
+- Fixed private resume access returning `AUTH_INVALID_CREDENTIALS` by replacing raw storage links with `/api/resume/current`.
+- Fixed generated-resume runtime error: `ENOENT ... pdfkit/js/data/Helvetica.afm` by adding `serverExternalPackages: ["pdfkit"]` in `next.config.ts`.
+- Removed the earlier generated-resume-from-profile action, then restored it with the new agreed scope: save first, download-only, no backend persistence.
+- Cleared a stale Next dev lock and restarted the dev server on `http://localhost:3000`.
 
 ## Current state
 
+- `context/progress-tracker.md` marks Feature 08 complete.
+- Next planned feature is `09 Find Jobs Page — Full UI`.
 - `npm run lint` passes.
-- `npm run build` passes.
-- InsForge MCP `get_backend_metadata` shows the four app tables with 0 records and the private `resumes` bucket.
-- InsForge MCP `get_table_schema` confirms RLS is enabled and ownership policies exist on all four app tables.
-- Working tree has expected local changes from this session:
-  - `AGENTS.md`
-  - `context/progress-tracker.md`
-  - `context/insforge-schema.sql`
-- The earlier auth trust-boundary concern still exists: `app/api/auth/session/route.ts` should be hardened before relying on auth in production.
+- `npm run build` passes and includes `/api/resume/current`, `/api/resume/extract`, and `/api/resume/generate`.
+- The dev server was restarted on `http://localhost:3000` after the PDFKit config fix.
+- Shell `curl` could not connect to localhost in this environment even while the Next process reported ready, so browser verification is still the practical signal.
+- User had reported "Something went wrong while generating your resume"; the root cause was fixed, but the user has not yet confirmed the browser retry after the restart.
+- Working tree contains the expected uncommitted feature changes for Profile Features 06-08 and supporting context/package updates.
 
 ## Next session starts with
 
-Start by running `/remember restore`, then decide whether to:
+Run `/remember restore`, then ask whether the user was able to download the generated resume after the PDFKit fix.
 
-1. Harden the auth trust boundary in `app/api/auth/session/route.ts` before moving on, or
-2. Begin Phase 2 Feature 05 — Profile Page Full UI.
-
-If touching InsForge code, re-fetch current InsForge docs through MCP first. If building UI, follow the required project context read order and update `ui-registry.md` plus `progress-tracker.md` after the feature.
+If not confirmed, inspect `.next/dev/logs/next-development.log` immediately after they retry `/api/resume/generate`; look for any new `[api/resume/generate]` error. If confirmed, begin Feature 09 — Find Jobs Page Full UI, following the required project context read order and updating `ui-registry.md` plus `progress-tracker.md`.
 
 ## Open questions
 
-- Should auth hardening happen before Feature 05, even though `progress-tracker.md` lists Profile Page UI as next?
-- Should logout emit an explicit `auth_signed_out` event?
-- Should returning authenticated users be identified on page load, not only immediately after OAuth callback?
+- Did the generated resume download work in the browser after the PDFKit `serverExternalPackages` fix and dev-server restart?
+- Should Feature 06 be tightened later to save the InsForge storage key and use explicit upsert semantics for the uploaded current resume?
+- Should auth/session trust-boundary hardening happen before deeper job-search features rely on authenticated DB data?

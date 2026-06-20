@@ -25,6 +25,7 @@ export type PostHogEventPayloads = {
       | "exchange_failed"
       | "missing_access_token"
       | "missing_code"
+      | "missing_refresh_token"
       | "missing_verifier"
       | "provider_error"
       | "provider_rejected"

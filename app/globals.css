@@ -128,10 +128,6 @@ body {
     );
 }
 
-.profile-completion-ring {
-  background: conic-gradient(var(--color-error) 0 70%, var(--color-accent-light) 70% 100%);
-}
-
 .profile-input {
   min-height: 42px;
   width: 100%;

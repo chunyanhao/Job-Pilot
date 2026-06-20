@@ -316,7 +316,6 @@ Approved dependencies for this project:
 - `openai` — GPT-4o API
 - `posthog-js` — PostHog browser client
 - `posthog-node` — PostHog server client
-- `@react-pdf/renderer` — Resume PDF generation
 - `pdf-parse` — Extract text from uploaded PDF
 - `zod` — Schema validation
 - `lucide-react` — Icons

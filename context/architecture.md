@@ -11,7 +11,6 @@
 | Job Discovery                  | Adzuna API               | Job search and discovery                         |
 | AI model                       | OpenAI GPT-4o            | Matching, research synthesis, extraction         |
 | Analytics                      | PostHog                  | Event tracking and dashboard charts              |
-| PDF generation                 | @react-pdf/renderer      | Resume PDF rendering                             |
 | Styling                        | Tailwind CSS + shadcn/ui | UI components and styling                        |
 | Language                       | TypeScript strict        | Throughout                                       |
 
@@ -176,15 +175,13 @@ Page data revalidated
 ### Resume Operations (API Routes)
 
 ```
-User uploads resume or clicks Generate
+User uploads resume or clicks Extract
         ↓
 API route in app/api/resume/
         ↓
-GPT-4o processes content
+GPT-4o processes extracted PDF text
         ↓
-@react-pdf/renderer renders PDF buffer
-        ↓
-New PDF uploaded to InsForge Storage
+Uploaded PDF saved to InsForge Storage
         ↓
 URL saved to profiles table
 ```

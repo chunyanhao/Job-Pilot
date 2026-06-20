@@ -64,7 +64,6 @@ Authenticated pages also show a compact Logout action in the top navbar.
   - "Extract from Resume" → GPT-4o parses resume and auto-fills profile form fields
   - "Skip" → resume stored as-is, profile unchanged
 - User can manually edit any profile field at any time
-- User can generate a clean professional PDF resume from their current profile data using GPT-4o
 
 ### Finding Jobs — Adzuna Discovery
 
@@ -167,7 +166,6 @@ Authenticated pages also show a compact Logout action in the top navbar.
 - Redirect to dashboard after login
 - Profile form with all standard resume fields
 - Resume PDF upload with optional profile auto-fill via GPT-4o
-- Resume PDF generation from profile data using GPT-4o
 - Adzuna API job discovery — searches by title and location, category filtered to IT jobs
 - GPT-4o job matching with score, reason, matched skills, missing skills
 - Job details page with full structured description

@@ -604,60 +604,6 @@ await posthog.shutdown(); // required — ensures event is sent
 
 ---
 
-## @react-pdf/renderer
-
-**Check first:** Check AGENTS.md for an installed react-pdf skill. PDF generation APIs can differ from general training knowledge.
-
-### Resume PDF Generation
-
-```typescript
-import { renderToBuffer } from '@react-pdf/renderer'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-
-const styles = StyleSheet.create({
-  page: { padding: 30, fontFamily: 'Helvetica' },
-  section: { marginBottom: 10 },
-  heading: { fontSize: 14, fontWeight: 'bold' },
-  text: { fontSize: 10 },
-})
-
-const ResumePDF = ({ profile }: { profile: Profile }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.heading}>{profile.fullName}</Text>
-        <Text style={styles.text}>{profile.email}</Text>
-      </View>
-    </Page>
-  </Document>
-)
-
-// Generate buffer
-const buffer = await renderToBuffer(<ResumePDF profile={profile} />)
-
-// Upload directly to InsForge Storage
-await insforge.storage
-  .from('resumes')
-  .upload(`${userId}/resume.pdf`, buffer, {
-    contentType: 'application/pdf',
-    upsert: true
-  })
-```
-
-**Supported CSS properties:**
-Only use these — others are silently ignored:
-`padding, margin, fontSize, color, fontFamily, flexDirection, alignItems, justifyContent, borderRadius, width, height, fontWeight, textAlign, lineHeight`
-
-**Rules:**
-
-- Server-side only — never import in client components
-- Always use `renderToBuffer` — not `renderToStream` or `PDFDownloadLink`
-- PDF generation only in `app/api/resume/` routes
-- Generated buffer uploaded directly to InsForge Storage — never written to disk
-- Always save public URL to DB after upload
-
----
-
 ## pdf-parse
 
 **Check first:** Check AGENTS.md for an installed pdf-parse skill.
@@ -687,3 +633,31 @@ export async function POST(req: NextRequest) {
 - `pdfData.text` is raw unformatted text — GPT-4o handles the structure extraction
 - Always handle parse errors — some PDFs are image-based and return empty text
 - If `pdfData.text` is empty or very short — return error to user: "Could not extract text from this PDF. Please try a different file."
+
+---
+
+## PDFKit
+
+Used only for server-side resume PDF export from saved profile data.
+
+### Generate Resume PDF
+
+```typescript
+import PDFDocument from "pdfkit";
+
+const doc = new PDFDocument({ size: "LETTER" });
+const chunks: Buffer[] = [];
+
+doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+doc.on("end", () => Buffer.concat(chunks));
+doc.text("Resume content");
+doc.end();
+```
+
+**Rules:**
+
+- Server-side only — never import in client components
+- Generated resume PDFs stream directly to the browser and are not saved to InsForge Storage or database
+- Use saved `profiles` data only — never generate from unsaved client-side form state
+- Keep generated resumes separate from uploaded current resumes; never overwrite `resume_pdf_url`
+- Keep layout deterministic and readable; no GPT rewriting in the PDF export step
